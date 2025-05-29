@@ -102,7 +102,7 @@ fi
 
 mkdir -p "$samples_build_dir"
 cd "$samples_build_dir"
-$CMAKE_EXEC -DCMAKE_BUILD_TYPE=Release "$SAMPLES_SOURCE_DIR"
+$CMAKE_EXEC -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=icpx -DTARGET_ARCH=sapphirerapids "$SAMPLES_SOURCE_DIR"
 $CMAKE_EXEC --build "$samples_build_dir" --config Release -- -j $NUM_THREADS
 
 if [ "$sample_install_dir" != "" ]; then

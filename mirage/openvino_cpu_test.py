@@ -26,3 +26,5 @@ result = compiled_model.infer_new_request({compiled_model.inputs[0]: input_tenso
 
 # Process the result as needed
 print("Inference completed.")
+
+#check if it is AMX-enebled in the log.

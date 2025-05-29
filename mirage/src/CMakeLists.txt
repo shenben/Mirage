@@ -4,29 +4,47 @@ cmake_minimum_required(VERSION 3.12)
 project(mirage LANGUAGES CXX)
 
 set(TARGET_NAME "mirage")
+set(TARGET_ARCH "native" CACHE STRING "Target architecture (e.g., sapphirerapids, native)")
 
-set(INTEL_CXX_COMPILER OFF)
-if(INTEL_CXX_COMPILER)
-    message(STATUS "Intel compiler found. Using Intel oneAPI DPC++/C++ Compiler.")
-    set(CMAKE_C_COMPILER icx)
-    set(CMAKE_CXX_COMPILER icpx)
-    
-    # Intel-specific compiler optimizations
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native -mtune=native -ipo -ffast-math -xHost -qopt-zmm-usage=high")
-    
-    # Enable OpenMP for Intel
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopenmp")
+
+set(INTEL_CXX_COMPILER ON)
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    message(STATUS "Using Intel oneAPI DPC++/C++ Compiler")
+    set(INTEL_COMPILER ON)
 else()
-    message(STATUS "Intel compiler not found. Using GCC.")
-    set(CMAKE_C_COMPILER gcc)
-    set(CMAKE_CXX_COMPILER g++)
-    
-    # GCC-specific compiler optimizations
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native -mtune=native -flto -ffast-math")
-    
-    # Enable OpenMP for GCC
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+    message(STATUS "Using ${CMAKE_CXX_COMPILER_ID} compiler")
+    set(INTEL_COMPILER OFF)
 endif()
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    message(STATUS "Using Intel oneAPI DPC++/C++ Compiler")
+    set(INTEL_COMPILER ON)
+else()
+    message(STATUS "Using ${CMAKE_CXX_COMPILER_ID} compiler")
+    set(INTEL_COMPILER OFF)
+endif()
+# if(INTEL_CXX_COMPILER)
+#     message(STATUS "Intel compiler found. Using Intel oneAPI DPC++/C++ Compiler.")
+#     set(CMAKE_C_COMPILER icx)
+#     set(CMAKE_CXX_COMPILER icpx)
+    
+#     # Intel-specific compiler optimizations
+#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native -mtune=native -ipo -ffast-math -xHost -qopt-zmm-usage=high")
+    
+#     # Enable OpenMP for Intel
+#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopenmp")
+# else()
+#     message(STATUS "Intel compiler not found. Using GCC.")
+#     set(CMAKE_C_COMPILER gcc)
+#     set(CMAKE_CXX_COMPILER g++)
+    
+#     # GCC-specific compiler optimizations
+#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native -mtune=native -flto -ffast-math")
+    
+#     # Enable OpenMP for GCC
+#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+# endif()
 
 set (CMAKE_C_STANDARD 11)
 set (CMAKE_CXX_STANDARD 17)
@@ -86,11 +104,21 @@ PRIVATE
     # boost_thread
 )
 
-# Enable interprocedural optimization
-if(INTEL_CXX_COMPILER)
-    set_property(TARGET ${TARGET_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-else()
-    set_property(TARGET ${TARGET_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-    # For GCC, we need to add the LTO flag explicitly
-    target_link_options(${TARGET_NAME} PRIVATE -flto)
-endif()
+target_compile_options(${TARGET_NAME} PRIVATE
+    ${COMMON_FLAGS}
+    ${ARCH_FLAG}
+    ${OPENMP_FLAG}
+    ${AMX_FLAGS}
+)
+
+# # IPO/LTO configuration
+# set_property(TARGET ${TARGET_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+
+# # Enable interprocedural optimization
+# if(INTEL_CXX_COMPILER)
+#     set_property(TARGET ${TARGET_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+# else()
+#     set_property(TARGET ${TARGET_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+#     # For GCC, we need to add the LTO flag explicitly
+#     target_link_options(${TARGET_NAME} PRIVATE -flto)
+# endif()
